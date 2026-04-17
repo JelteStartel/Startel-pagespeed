@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snelheidsrapport — startel.nl</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f4f1;
+    --surface: #ffffff;
+    --surface2: #eeede9;
+    --border: rgba(0,0,0,0.08);
+    --border-strong: rgba(0,0,0,0.16);
+    --text: #1a1917;
+    --muted: #888580;
+    --accent: #3a3834;
+    --red: #c0392b;
+    --red-bg: rgba(192,57,43,0.08);
+    --amber: #b5620d;
+    --amber-bg: rgba(181,98,13,0.08);
+    --green: #2e7d52;
+    --green-bg: rgba(46,125,82,0.08);
+    --mono: 'DM Mono', monospace;
+    --serif: 'Instrument Serif', serif;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  html { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+
+  body { max-width: 900px; margin: 0 auto; padding: 60px 32px 100px; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate { animation: fadeUp 0.6s ease both; }
+  .d1 { animation-delay: 0.05s; }
+  .d2 { animation-delay: 0.15s; }
+  .d3 { animation-delay: 0.25s; }
+  .d4 { animation-delay: 0.35s; }
+  .d5 { animation-delay: 0.45s; }
+  .d6 { animation-delay: 0.55s; }
+
+  /* Header */
+  .header { border-bottom: 1px solid var(--border); padding-bottom: 32px; margin-bottom: 48px; }
+  .header-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 20px; }
+  .eyebrow { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px; }
+  h1 { font-family: var(--serif); font-size: 42px; line-height: 1.1; font-weight: 400; color: var(--text); }
+  h1 em { font-style: italic; color: var(--muted); }
+  .verdict-badge { flex-shrink: 0; display: inline-flex; align-items: center; gap: 8px; background: var(--red-bg); border: 1px solid var(--red); color: var(--red); font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; padding: 8px 14px; border-radius: 4px; white-space: nowrap; margin-top: 8px; }
+  .verdict-badge::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--red); flex-shrink: 0; }
+  .meta { display: flex; gap: 24px; flex-wrap: wrap; }
+  .meta-item { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .meta-item span { color: var(--accent); }
+
+  /* Section */
+  section { margin-bottom: 56px; }
+  .section-title { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; display: flex; align-items: center; gap: 12px; }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* Metric cards */
+  .metric-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  .metric-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 18px 16px; position: relative; overflow: hidden; transition: border-color 0.2s; }
+  .metric-card:hover { border-color: var(--border-strong); }
+  .metric-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; border-radius: 0 0 8px 8px; }
+  .metric-card.red::after  { background: var(--red); }
+  .metric-card.amber::after { background: var(--amber); }
+  .metric-card.green::after { background: var(--green); }
+  .m-label { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.08em; margin-bottom: 10px; }
+  .m-value { font-family: var(--mono); font-size: 26px; font-weight: 500; line-height: 1; margin-bottom: 10px; }
+  .m-value.red   { color: var(--red); }
+  .m-value.amber { color: var(--amber); }
+  .m-value.green { color: var(--green); }
+  .m-tag { display: inline-block; font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; padding: 3px 8px; border-radius: 3px; }
+  .m-tag.red   { background: var(--red-bg);   color: var(--red); }
+  .m-tag.amber { background: var(--amber-bg); color: var(--amber); }
+  .m-tag.green { background: var(--green-bg); color: var(--green); }
+  .m-bar { height: 3px; background: var(--surface2); border-radius: 2px; margin-top: 12px; overflow: hidden; }
+  .m-bar-fill { height: 100%; border-radius: 2px; }
+
+  /* Desktop table */
+  .desktop-grid { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .dt-row { display: grid; grid-template-columns: 1fr auto auto auto; gap: 0; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--border); transition: background 0.15s; }
+  .dt-row:last-child { border-bottom: none; }
+  .dt-row:hover { background: var(--surface2); }
+  .dt-name { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  .dt-val  { font-family: var(--mono); font-size: 14px; font-weight: 500; text-align: right; min-width: 80px; }
+  .dt-threshold { font-family: var(--mono); font-size: 10px; color: var(--muted); text-align: right; min-width: 100px; }
+  .dt-badge { text-align: right; min-width: 90px; }
+
+  /* Problems */
+  .problem { display: grid; grid-template-columns: 3px 1fr; gap: 0; border-radius: 8px; overflow: hidden; margin-bottom: 12px; background: var(--surface); border: 1px solid var(--border); transition: border-color 0.2s; }
+  .problem:hover { border-color: var(--border-strong); }
+  .problem-stripe { }
+  .problem-stripe.red   { background: var(--red); }
+  .problem-stripe.amber { background: var(--amber); }
+  .problem-stripe.green { background: var(--green); }
+  .problem-body { padding: 18px 20px; }
+  .problem-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 6px; }
+  .problem-title { font-size: 14px; font-weight: 500; color: var(--text); }
+  .problem-priority { font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; padding: 3px 8px; border-radius: 3px; white-space: nowrap; flex-shrink: 0; }
+  .priority-crit  { background: var(--red-bg);   color: var(--red); }
+  .priority-med   { background: var(--amber-bg); color: var(--amber); }
+  .priority-low   { background: var(--green-bg); color: var(--green); }
+  .problem-sub { font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .problem-sub strong { color: var(--accent); font-weight: 500; }
+
+  /* Score summary */
+  .score-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .score-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; text-align: center; }
+  .score-label { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.08em; margin-bottom: 12px; }
+  .score-icon { font-size: 24px; margin-bottom: 8px; }
+  .score-verdict { font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; padding: 5px 12px; border-radius: 4px; display: inline-block; }
+
+  /* Distribution bars */
+  .dist-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .dist-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; }
+  .dist-title { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-bottom: 14px; }
+  .dist-bar-wrap { display: flex; height: 8px; border-radius: 4px; overflow: hidden; gap: 2px; margin-bottom: 10px; }
+  .dist-seg { height: 100%; border-radius: 2px; }
+  .dist-labels { display: flex; justify-content: space-between; }
+  .dist-lab { font-family: var(--mono); font-size: 10px; }
+
+  /* Footer */
+  footer { border-top: 1px solid var(--border); padding-top: 28px; margin-top: 60px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+  .foot-left { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .foot-right { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+
+  @media (max-width: 680px) {
+    body { padding: 40px 20px 80px; }
+    h1 { font-size: 32px; }
+    .metric-grid { grid-template-columns: repeat(3, 1fr); }
+    .dist-grid { grid-template-columns: 1fr; }
+    .score-grid { grid-template-columns: 1fr; }
+    .header-top { flex-direction: column; }
+    .dt-row { grid-template-columns: 1fr auto auto; }
+    .dt-threshold { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header animate d1">
+  <div class="header-top">
+    <div>
+      <p class="eyebrow">Websitesnelheid analyse</p>
+      <h1>startel<em>.nl</em></h1>
+    </div>
+    <span class="verdict-badge">Core Web Vitals: Gezakt</span>
+  </div>
+  <div class="meta">
+    <span class="meta-item">Meting: <span>2 april 2026</span></span>
+    <span class="meta-item">Periode: <span>4 mrt – 31 mrt 2026</span></span>
+    <span class="meta-item">Bron: <span>PageSpeed Insights / Chrome UX Report</span></span>
+    <span class="meta-item">Apparaat: <span>Mobiel + Desktop</span></span>
+  </div>
+</header>
+
+<main>
+
+  <!-- Mobiel metrics -->
+  <section class="animate d2">
+    <p class="section-title">Mobiel — kerncijfers</p>
+    <div class="metric-grid">
+
+      <div class="metric-card red">
+        <p class="m-label">TTFB</p>
+        <p class="m-value red">3,6 s</p>
+        <span class="m-tag red">Slecht</span>
+        <div class="m-bar"><div class="m-bar-fill" style="width:100%; background:var(--red);"></div></div>
+      </div>
+
+      <div class="metric-card red">
+        <p class="m-label">LCP</p>
+        <p class="m-value red">4,3 s</p>
+        <span class="m-tag red">Slecht</span>
+        <div class="m-bar"><div class="m-bar-fill" style="width:100%; background:var(--red);"></div></div>
+      </div>
+
+      <div class="metric-card red">
+        <p class="m-label">FCP</p>
+        <p class="m-value red">4,0 s</p>
+        <span class="m-tag red">Slecht</span>
+        <div class="m-bar"><div class="m-bar-fill" style="width:95%; background:var(--red);"></div></div>
+      </div>
+
+      <div class="metric-card green">
+        <p class="m-label">INP</p>
+        <p class="m-value green">171 ms</p>
+        <span class="m-tag green">Goed</span>
+        <div class="m-bar"><div class="m-bar-fill" style="width:34%; background:var(--green);"></div></div>
+      </div>
+
+      <div class="metric-card green">
+        <p class="m-label">CLS</p>
+        <p class="m-value green">0,02</p>
+        <span class="m-tag green">Goed</span>
+        <div class="m-bar"><div class="m-bar-fill" style="width:8%; background:var(--green);"></div></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Verdeling per metric -->
+  <section class="animate d3">
+    <p class="section-title">Verdeling bezoekers — mobiel</p>
+    <div class="dist-grid">
+
+      <div class="dist-card">
+        <p class="dist-title">TTFB (drempel: ≤ 0,8 s)</p>
+        <div class="dist-bar-wrap">
+          <div class="dist-seg" style="width:48%; background:var(--green);"></div>
+          <div class="dist-seg" style="width:1%; background:var(--amber);"></div>
+          <div class="dist-seg" style="width:51%; background:var(--red);"></div>
+        </div>
+        <div class="dist-labels">
+          <span class="dist-lab" style="color:var(--green);">Goed 48%</span>
+          <span class="dist-lab" style="color:var(--amber);">Matig 1%</span>
+          <span class="dist-lab" style="color:var(--red);">Slecht 51%</span>
+        </div>
+      </div>
+
+      <div class="dist-card">
+        <p class="dist-title">LCP (drempel: ≤ 2,5 s)</p>
+        <div class="dist-bar-wrap">
+          <div class="dist-seg" style="width:55%; background:var(--green);"></div>
+          <div class="dist-seg" style="width:16%; background:var(--amber);"></div>
+          <div class="dist-seg" style="width:29%; background:var(--red);"></div>
+        </div>
+        <div class="dist-labels">
+          <span class="dist-lab" style="color:var(--green);">Goed 55%</span>
+          <span class="dist-lab" style="color:var(--amber);">Matig 16%</span>
+          <span class="dist-lab" style="color:var(--red);">Slecht 29%</span>
+        </div>
+      </div>
+
+      <div class="dist-card">
+        <p class="dist-title">FCP (drempel: ≤ 1,8 s)</p>
+        <div class="dist-bar-wrap">
+          <div class="dist-seg" style="width:54%; background:var(--green);"></div>
+          <div class="dist-seg" style="width:7%; background:var(--amber);"></div>
+          <div class="dist-seg" style="width:39%; background:var(--red);"></div>
+        </div>
+        <div class="dist-labels">
+          <span class="dist-lab" style="color:var(--green);">Goed 54%</span>
+          <span class="dist-lab" style="color:var(--amber);">Matig 7%</span>
+          <span class="dist-lab" style="color:var(--red);">Slecht 39%</span>
+        </div>
+      </div>
+
+      <div class="dist-card">
+        <p class="dist-title">INP (drempel: ≤ 200 ms)</p>
+        <div class="dist-bar-wrap">
+          <div class="dist-seg" style="width:83%; background:var(--green);"></div>
+          <div class="dist-seg" style="width:15%; background:var(--amber);"></div>
+          <div class="dist-seg" style="width:2%; background:var(--red);"></div>
+        </div>
+        <div class="dist-labels">
+          <span class="dist-lab" style="color:var(--green);">Goed 83%</span>
+          <span class="dist-lab" style="color:var(--amber);">Matig 15%</span>
+          <span class="dist-lab" style="color:var(--red);">Slecht 2%</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Desktop -->
+  <section class="animate d3">
+    <p class="section-title">Desktop — vergelijking</p>
+    <div class="desktop-grid">
+      <div class="dt-row">
+        <span class="dt-name">TTFB</span>
+        <span class="dt-val" style="color:var(--red);">2,9 s</span>
+        <span class="dt-threshold">drempel ≤ 0,8 s</span>
+        <span class="dt-badge"><span class="m-tag red">Slecht</span></span>
+      </div>
+      <div class="dt-row">
+        <span class="dt-name">LCP</span>
+        <span class="dt-val" style="color:var(--amber);">3,2 s</span>
+        <span class="dt-threshold">drempel ≤ 2,5 s</span>
+        <span class="dt-badge"><span class="m-tag amber">Matig</span></span>
+      </div>
+      <div class="dt-row">
+        <span class="dt-name">FCP</span>
+        <span class="dt-val" style="color:var(--amber);">2,5 s</span>
+        <span class="dt-threshold">drempel ≤ 1,8 s</span>
+        <span class="dt-badge"><span class="m-tag amber">Matig</span></span>
+      </div>
+      <div class="dt-row">
+        <span class="dt-name">INP</span>
+        <span class="dt-val" style="color:var(--green);">115 ms</span>
+        <span class="dt-threshold">drempel ≤ 200 ms</span>
+        <span class="dt-badge"><span class="m-tag green">Goed</span></span>
+      </div>
+      <div class="dt-row">
+        <span class="dt-name">CLS</span>
+        <span class="dt-val" style="color:var(--green);">0,04</span>
+        <span class="dt-threshold">drempel ≤ 0,1</span>
+        <span class="dt-badge"><span class="m-tag green">Goed</span></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Problemen -->
+  <section class="animate d4">
+    <p class="section-title">Grootste problemen — geprioriteerd</p>
+
+    <div class="problem">
+      <div class="problem-stripe red"></div>
+      <div class="problem-body">
+        <div class="problem-head">
+          <span class="problem-title">Extreem trage serverresponstijd (TTFB)</span>
+          <span class="problem-priority priority-crit">Kritiek</span>
+        </div>
+        <p class="problem-sub">
+          De server doet er <strong>3,6 seconden (mobiel)</strong> en <strong>2,9 seconden (desktop)</strong> over voordat hij de eerste byte terugstuurt. De norm is ≤ 0,8 seconden. Dit is de worteloorzaak van alle andere vertragingen: <strong>51% van alle bezoekers</strong> ervaart de serverrespons als slecht. Zonder een gezonde TTFB kunnen FCP en LCP nooit goed scoren — de browser kan pas beginnen met renderen nadat de server geantwoord heeft.
+        </p>
+      </div>
+    </div>
+
+    <div class="problem">
+      <div class="problem-stripe red"></div>
+      <div class="problem-body">
+        <div class="problem-head">
+          <span class="problem-title">Largest Contentful Paint veel te laat (LCP)</span>
+          <span class="problem-priority priority-crit">Kritiek</span>
+        </div>
+        <p class="problem-sub">
+          Het grootste zichtbare element — vermoedelijk een hero-afbeelding of banner — laadt pas na <strong>4,3 seconden op mobiel</strong> en <strong>3,2 seconden op desktop</strong>. De norm is ≤ 2,5 seconden. <strong>29% van de mobiele laadmomenten</strong> scoort slecht. Google gebruikt LCP als officieel Core Web Vital voor zoekrangschikking — een slechte score raakt dus direct de SEO-positie.
+        </p>
+      </div>
+    </div>
+
+    <div class="problem">
+      <div class="problem-stripe red"></div>
+      <div class="problem-body">
+        <div class="problem-head">
+          <span class="problem-title">Blanco scherm van 4 seconden (FCP)</span>
+          <span class="problem-priority priority-crit">Kritiek</span>
+        </div>
+        <p class="problem-sub">
+          De First Contentful Paint staat op <strong>4,0 seconden op mobiel</strong>. Bezoekers kijken 4 volle seconden naar een leeg scherm voordat er ook maar iets zichtbaar is. <strong>39% van de mobiele laadmomenten</strong> valt in de categorie slecht. Dit leidt tot hoge bounce rates — gebruikers haken af voordat de pagina überhaupt iets toont.
+        </p>
+      </div>
+    </div>
+
+    <div class="problem">
+      <div class="problem-stripe amber"></div>
+      <div class="problem-body">
+        <div class="problem-head">
+          <span class="problem-title">LCP op desktop nog steeds onvoldoende</span>
+          <span class="problem-priority priority-med">Aandacht</span>
+        </div>
+        <p class="problem-sub">
+          Ook op desktopverbindingen scoort de LCP met <strong>3,2 seconden</strong> in de categorie "matig". Zelfs met een snellere verbinding en krachtiger apparaat duurt het langer dan de norm van 2,5 seconden. Dit wijst op onderliggende problemen los van het netwerk — denk aan ongeoptimaliseerde afbeeldingen of blokkerende resources.
+        </p>
+      </div>
+    </div>
+
+    <div class="problem">
+      <div class="problem-stripe green"></div>
+      <div class="problem-body">
+        <div class="problem-head">
+          <span class="problem-title">Interactiviteit en lay-outstabiliteit zijn goed</span>
+          <span class="problem-priority priority-low">Geen prioriteit</span>
+        </div>
+        <p class="problem-sub">
+          De <strong>INP (171 ms mobiel, 115 ms desktop)</strong> en <strong>CLS (0,02 mobiel, 0,04 desktop)</strong> scoren allebei goed. De pagina reageert snel op klikken en verschuift niet tijdens het laden. Dit hoeft geen aandacht te krijgen.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Scorecards -->
+  <section class="animate d5">
+    <p class="section-title">Oordeel per categorie</p>
+    <div class="score-grid">
+      <div class="score-card">
+        <p class="score-label">Server &amp; Hosting</p>
+        <div style="width:40px; height:40px; border-radius:50%; background:var(--red-bg); border:1px solid var(--red); margin:0 auto 12px; display:flex; align-items:center; justify-content:center;">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v6M8 11v1" stroke="#e05a4e" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <span class="score-verdict" style="background:var(--red-bg); color:var(--red);">Kritiek</span>
+        <p style="font-family:var(--mono); font-size:10px; color:var(--muted); margin-top:10px;">TTFB 3,6 s · 4,5× te traag</p>
+      </div>
+      <div class="score-card">
+        <p class="score-label">Laadsnelheid pagina</p>
+        <div style="width:40px; height:40px; border-radius:50%; background:var(--red-bg); border:1px solid var(--red); margin:0 auto 12px; display:flex; align-items:center; justify-content:center;">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v6M8 11v1" stroke="#e05a4e" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <span class="score-verdict" style="background:var(--red-bg); color:var(--red);">Kritiek</span>
+        <p style="font-family:var(--mono); font-size:10px; color:var(--muted); margin-top:10px;">LCP 4,3 s · FCP 4,0 s</p>
+      </div>
+      <div class="score-card">
+        <p class="score-label">Interactiviteit &amp; Stabiliteit</p>
+        <div style="width:40px; height:40px; border-radius:50%; background:var(--green-bg); border:1px solid var(--green); margin:0 auto 12px; display:flex; align-items:center; justify-content:center;">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 8l3 3 5-5" stroke="#5aad7a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <span class="score-verdict" style="background:var(--green-bg); color:var(--green);">Goed</span>
+        <p style="font-family:var(--mono); font-size:10px; color:var(--muted); margin-top:10px;">INP 171 ms · CLS 0,02</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Conclusie -->
+  <section class="animate d6">
+    <p class="section-title">Conclusie</p>
+    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 28px 28px;">
+      <p style="font-family: var(--serif); font-size: 20px; line-height: 1.5; color: var(--text); margin-bottom: 16px;">
+        De prioriteit moet vrijwel volledig liggen bij de <em>server en de initiële laadtijd</em>.
+      </p>
+      <p style="font-size: 14px; color: var(--muted); line-height: 1.7; max-width: 680px;">
+        Zodra de TTFB omlaag gaat richting de norm van 0,8 seconden, zullen FCP en LCP als vanzelf ook verbeteren — zij zijn afhankelijk van de serverrespons. Desktop presteert beter dan mobiel, maar ook daar is de situatie met een LCP van 3,2 seconden nog onvoldoende. Interactiviteit en lay-outstabiliteit zijn geen aandachtsgebied en kunnen met rust gelaten worden.
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <span class="foot-left">startel.nl · Snelheidsrapport · April 2026</span>
+  <span class="foot-right">Bron: PageSpeed Insights (Google Chrome UX Report)</span>
+</footer>
+
+</body>
+</html>
